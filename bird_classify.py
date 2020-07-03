@@ -41,6 +41,7 @@ def save_data(image,results,path,ext='png'):
     """Saves camera frame and model inference results
     to user-defined storage directory."""
     tag = '%010d' % int(time.monotonic()*1000)
+    print('Attempting save as: %s/img-%s.%s' %(path,tag,ext))
     name = '%s/img-%s.%s' %(path,tag,ext)
     image.save(name)
     print('Frame saved as: %s' %name)
@@ -104,6 +105,7 @@ def main():
     engine = ClassificationEngine(args.model)
     labels = load_labels(args.labels)
     storage_dir = args.storage
+    targets = ['jay', 'robin', 'owl', 'chickadee', 'bird', 'magpie', 'kite', 'eagle', 'finch', 'hen', 'cock', 'ostrich', 'bunting', 'bulbul', 'ouzel', 'vulture']
 
     #Initialize logging file
     logging.basicConfig(filename='%s/results.log'%storage_dir,
@@ -124,16 +126,19 @@ def main():
           print_results(start_time,last_time, end_time, results)
 
         if args.training:
+          print("training mode")
           if do_training(results,last_results,args.top_k):
             save_data(image,results, storage_dir)
         else:
+          print("looking for birds")
           #Custom model mode:
           #The labels can be modified to detect/deter user-selected items
-          if results[0][0] !='background':
-            save_data(image, storage_dir,results)
-          if 'fox squirrel, eastern fox squirrel, Sciurus niger' in results:
-            playsound(args.sound)
-            logging.info('Deterrent sounded')
+          # if results[0][0] !='background':
+          #   save_data(image, storage_dir,results)
+          for label, score in results:
+            for target in targets:
+              if target in label:
+                save_data(image, results, storage_dir)
 
         last_results=results
         last_time = end_time

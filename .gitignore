@@ -1,0 +1,7 @@
+*.tflite
+*.log
+__pycache__
+/storage/**/*
+bird-log.txt
+bin
+lib

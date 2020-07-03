@@ -20,7 +20,6 @@
 python3 bird_classify.py \
 	--model mobilenet_v2_1.0_224_quant_edgetpu.tflite \
 	--labels imagenet_labels.txt \
-	--storage sdcard_directory \
+	--storage /home/pi/Projects/project-birdfeeder/storage \
 	--sound sound_file.wav \
-	--training True \
 	--print True
