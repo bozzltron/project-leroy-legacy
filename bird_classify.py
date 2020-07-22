@@ -105,7 +105,7 @@ def main():
     engine = ClassificationEngine(args.model)
     labels = load_labels(args.labels)
     storage_dir = args.storage
-    targets = ['jay', 'robin', 'owl', 'chickadee', 'bird', 'magpie', 'kite', 'eagle', 'finch', 'hen', 'cock', 'ostrich', 'bunting', 'bulbul', 'ouzel', 'vulture']
+    targets = ['Robin', 'jay', 'robin', 'owl', 'chickadee', 'bird', 'magpie', 'kite', 'eagle', 'finch', 'hen', 'cock', 'ostrich', 'bunting', 'bulbul', 'ouzel', 'vulture']
 
     #Initialize logging file
     logging.basicConfig(filename='%s/results.log'%storage_dir,
@@ -131,14 +131,10 @@ def main():
             save_data(image,results, storage_dir)
         else:
           print("looking for birds")
-          #Custom model mode:
-          #The labels can be modified to detect/deter user-selected items
-          # if results[0][0] !='background':
-          #   save_data(image, storage_dir,results)
-          for label, score in results:
-            for target in targets:
-              if target in label:
-                save_data(image, results, storage_dir)
+          # Custom model mode:
+          # Save the images if the label is one of the targets and its probability is relatively high
+          if results[0][0] in targets and results[0][1] >= 0.7:
+            save_data(image, results, storage_dir)
 
         last_results=results
         last_time = end_time

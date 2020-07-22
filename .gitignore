@@ -5,3 +5,4 @@ __pycache__
 bird-log.txt
 bin
 lib
+.DS_Store
