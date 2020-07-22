@@ -105,7 +105,7 @@ def main():
     engine = ClassificationEngine(args.model)
     labels = load_labels(args.labels)
     storage_dir = args.storage
-    targets = ['Robin', 'jay', 'robin', 'owl', 'chickadee', 'bird', 'magpie', 'kite', 'eagle', 'finch', 'hen', 'cock', 'ostrich', 'bunting', 'bulbul', 'ouzel', 'vulture']
+    targets = ['Sparrow']
 
     #Initialize logging file
     logging.basicConfig(filename='%s/results.log'%storage_dir,
