@@ -26,7 +26,7 @@ optionally can set this to training mode for collecting images for a custom
 model.
 
 """
-
+import sys
 import argparse
 import time
 import re
@@ -36,16 +36,46 @@ import gstreamer
 from edgetpu.classification.engine import ClassificationEngine
 from PIL import Image
 from playsound import playsound
+from picamera import PiCamera
+from time import sleep
+from twython import Twython
+
+# generate your own auth.py file with credentials
+from auth import (
+    app_key,
+    app_key_secret,
+    oauth_token,
+    oauth_token_secret
+)
+
+twitter = Twython(app_key, app_key_secret,
+                  oauth_token, oauth_token_secret)
+
+#camera = PiCamera()
+
+def take_a_picture(path, ext='png'):
+    print('Take a picture!')
+    tag = '%010d' % int(time.monotonic()*1000)
+    name = '%s/hiRes-img-%s.%s' %(path,tag,ext)
+    camera.capture(name)
+    return name
+
+def tweet(status, filename):
+    imageFile = open(filename, 'rb')
+    response = twitter.upload_media(media=imageFile)
+    media_id = [response['media_id']]
+    logging.info('media id : %s', response['media_id'])
+    twitter.update_status(status=status, media_ids=media_id)
 
 def save_data(image,results,path,ext='png'):
     """Saves camera frame and model inference results
     to user-defined storage directory."""
     tag = '%010d' % int(time.monotonic()*1000)
-    print('Attempting save as: %s/img-%s.%s' %(path,tag,ext))
     name = '%s/img-%s.%s' %(path,tag,ext)
     image.save(name)
     print('Frame saved as: %s' %name)
     logging.info('Image: %s Results: %s', tag,results)
+    return name
 
 def load_labels(path):
     """Parses provided label file for use in model inference."""
@@ -105,23 +135,26 @@ def main():
     engine = ClassificationEngine(args.model)
     labels = load_labels(args.labels)
     storage_dir = args.storage
-    targets = ['Sparrow']
 
-    #Initialize logging file
+    #Initialize logging files
     logging.basicConfig(filename='%s/results.log'%storage_dir,
                         format='%(asctime)s-%(message)s',
                         level=logging.DEBUG)
 
     last_time = time.monotonic()
     last_results = [('label', 0)]
+    last_tweet = None
+
     def user_callback(image,svg_canvas):
         nonlocal last_time
         nonlocal last_results
+        nonlocal last_tweet
+     
         start_time = time.monotonic()
         results = engine.classify_with_image(image, threshold=args.threshold, top_k=args.top_k)
         end_time = time.monotonic()
         results = [(labels[i], score) for i, score in results]
-
+    
         if args.print:
           print_results(start_time,last_time, end_time, results)
 
@@ -133,8 +166,19 @@ def main():
           print("looking for birds")
           # Custom model mode:
           # Save the images if the label is one of the targets and its probability is relatively high
-          if results[0][0] in targets and results[0][1] >= 0.7:
-            save_data(image, results, storage_dir)
+          if results[0][1] >= 0.8:
+            filename = save_data(image, results, storage_dir)
+            if (last_tweet is None) or ((time.time() - last_tweet > 300 ) and results[0][1] >= 0.9):
+              try:
+                #imageFile = take_a_picture(storage_dir)
+                status = "I'm %d percent sure this is a %s. #ai"%(results[0][1] * 100, results[0][0])
+                logging.info('Trying to tweet : %s', status)
+                logging.info('Reading file %s', filename)
+                tweet(status, filename)
+                last_tweet = time.time()
+              except:
+                logging.exception('Failed to send tweet')
+                last_tweet = None
 
         last_results=results
         last_time = end_time

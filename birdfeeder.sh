@@ -18,8 +18,8 @@
 #!/bin/bash
 
 python3 bird_classify.py \
-	--model /home/pi/Projects/project-birdfeeder/retrain-imprinting/retrained_imprinting_model.tflite \
-	--labels /home/pi/Projects/project-birdfeeder/retrain-imprinting/retrained_imprinting_model.txt \
+	--model /home/pi/Projects/project-birdfeeder/mobilenet_v2_1.0_224_inat_bird_quant_edgetpu.tflite \
+	--labels /home/pi/Projects/project-birdfeeder/inat_bird_label.txt \
 	--storage /home/pi/Projects/project-birdfeeder/storage \
 	--sound sound_file.wav \
 	--print True

@@ -6,3 +6,6 @@ bird-log.txt
 bin
 lib
 .DS_Store
+auth.py
+/storage_backup
+
